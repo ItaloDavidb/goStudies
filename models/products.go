@@ -7,7 +7,7 @@ import (
 )
 
 type Product struct {
-	ID        int // Seu banco de dados provavelmente gerenciará o ID
+	ID        int 
 	Nome      string
 	Descricao string
 	Preco     float64
