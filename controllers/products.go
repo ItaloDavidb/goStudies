@@ -14,6 +14,18 @@ var temp = template.Must(template.ParseGlob("templates/*.html"))
 func Index(w http.ResponseWriter, r *http.Request) {
 	temp.ExecuteTemplate(w, "Index", nil)
 }
+func GetAllProducts(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		produtos, err := models.GetAllProducts()
+		if err != nil {
+			http.Error(w, "Erro ao buscar produtos", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(produtos)
+	}
+}
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		// Decodifica o JSON do corpo da requisição para o struct Product
@@ -32,7 +44,8 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Chama a função para criar o produto no banco de dados
-		err = models.CreateProduct(db, &novoProduto)
+
+		err = models.CreateProduct(&novoProduto)
 		if err != nil {
 			http.Error(w, "Erro ao criar produto", http.StatusInternalServerError)
 			return

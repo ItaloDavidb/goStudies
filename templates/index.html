@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRUD de Produtos</title>
+    <link rel="icon" type="image/x-icon" href="https://go.dev/blog/go-brand/Go-Logo/SVG/Go-Logo_Blue.svg">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -88,12 +89,12 @@
         <!-- Formulário para criação de novo produto -->
         <h2>Novo Produto</h2>
         <form id="formNovoProduto">
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" required><br><br>
-            <label for="descricao">Descrição:</label>
-            <textarea id="descricao" name="descricao" required></textarea><br><br>
-            <label for="preco">Preço:</label>
-            <input type="number" id="preco" name="preco" step="0.01" required><br><br>
+            <label for="Nome">Nome:</label>
+            <input type="text" id="Nome" name="Nome" required><br><br>
+            <label for="Descricao">Descrição:</label>
+            <textarea id="Descricao" name="Descricao" required></textarea><br><br>
+            <label for="Preco">Preço:</label>
+            <input type="number" id="Preco" name="Preco" step="0.01" required><br><br>
             <button type="submit">Criar Produto</button>
         </form>
         
@@ -150,10 +151,9 @@
             produtos.forEach(produto => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${produto.id}</td>
-                    <td>${produto.nome}</td>
-                    <td>${produto.descricao}</td>
-                    <td>${produto.preco}</td>
+                    <td>${produto.Nome}</td>
+                    <td>${produto.Descricao}</td>
+                    <td>${produto.Preco}</td>
                     <td>
                         <button onclick="alterarProduto(${produto.id})">Alterar</button>
                         <button onclick="removerProduto(${produto.id})">Remover</button>
@@ -168,9 +168,9 @@
             event.preventDefault();
             const formData = new FormData(event.target);
             const novoProduto = {
-                nome: formData.get('nome'),
-                descricao: formData.get('descricao'),
-                preco: parseFloat(formData.get('preco'))
+                Nome: formData.get('Nome'),
+                Descricao: formData.get('Descricao'),
+                Preco: parseFloat(formData.get('Preco'))
             };
             
             fetch('/api/produtos', {
@@ -182,9 +182,7 @@
             })
             .then(response => response.json())
             .then(produto => {
-                alert(`Produto criado com ID: ${produto.id}`);
-                // Atualizar a tabela após criar o produto
-                buscarTodos();
+                alert(`Produto criado com o Nome: ${produto.Nome}`);
                 // Limpar formulário
                 event.target.reset();
             })
