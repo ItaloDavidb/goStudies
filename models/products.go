@@ -25,14 +25,12 @@ func CreateProduct(produto *Product) error {
 }
 func GetAllProducts() ([]Product, error) {
 	db := db.ConnectToDb()
-	defer db.Close()
 
 	rows, err := db.Query("SELECT * FROM produtos")
 	if err != nil {
 		log.Println("Erro ao buscar produtos no banco de dados:", err)
 		return nil, err
 	}
-	defer rows.Close()
 
 	var produtos []Product
 
@@ -50,6 +48,27 @@ func GetAllProducts() ([]Product, error) {
 		log.Println("Erro no resultado dos produtos:", err)
 		return nil, err
 	}
-
+	defer rows.Close()
+	defer db.Close()
 	return produtos, nil
+}
+func UpdateProduct(id string, attProduto *Product) error {
+	db := db.ConnectToDb()
+	_, err := db.Exec("UPDATE produtos SET nome = $1, descricao = $2, preco = $3 WHERE id = $4", attProduto.Nome, attProduto.Descricao, attProduto.Preco, id)
+	if err != nil {
+		log.Println("Erro ao Atualizar produto no banco de dados:", err)
+		return err
+	}
+	defer db.Close()
+	return nil
+}
+func RemoveProduct(id string) error {
+	db := db.ConnectToDb()
+	_, err := db.Exec("DELETE FROM produtos where id = $1", id)
+	if err != nil {
+		log.Println("Erro ao Remover produto no banco de dados:", err)
+		return err
+	}
+	defer db.Close()
+	return nil
 }

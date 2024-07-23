@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/goStudies/models"
+	"github.com/gorilla/mux"
 )
 
 var temp = template.Must(template.ParseGlob("templates/*.html"))
@@ -24,6 +25,56 @@ func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(produtos)
+	}
+}
+func RemoveProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "DELETE" {
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		err := models.RemoveProduct(id)
+		if err != nil {
+			http.Error(w, "Erro ao buscar produtos", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode("Produto Removido com Sucesso")
+	}
+}
+
+func UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "PATCH" {
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		// Decodifica o JSON do corpo da requisição para o struct Product
+		var attProduto models.Product
+		err := json.NewDecoder(r.Body).Decode(&attProduto)
+		if err != nil {
+			http.Error(w, "Erro ao decodificar JSON", http.StatusBadRequest)
+			log.Println("Erro ao decodificar JSON:", err)
+			return
+		}
+
+		if attProduto.Nome == "" || attProduto.Descricao == "" || attProduto.Preco <= 0 {
+			http.Error(w, "Todos os campos devem ser preenchidos", http.StatusBadRequest)
+			return
+		}
+
+		// Atualizar o produto no banco de dados
+		err = models.UpdateProduct(id, &attProduto)
+		if err != nil {
+			http.Error(w, "Erro ao atualizar produto", http.StatusInternalServerError)
+			return
+		}
+
+		// Log para depuração
+		log.Printf("Produto Atualizado: ID=%s, Nome=%s, Descrição=%s, Preço=%.2f", id, attProduto.Nome, attProduto.Descricao, attProduto.Preco)
+
+		// Retornar uma resposta de sucesso com o produto atualizado
+		w.WriteHeader(http.StatusOK) // Status 200 OK
+		json.NewEncoder(w).Encode(attProduto)
 	}
 }
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
