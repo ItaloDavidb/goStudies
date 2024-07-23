@@ -1,0 +1,209 @@
+{{define "Index"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Produtos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f2f2f2;
+            background-image: url('https://gist.github.com/GeekTree0101/05d338bb59109fc71871711c6fa49377/raw/e3e02536fd8e39e82b14e68fa953bac0dbed8a59/dancing-gopher.gif');
+            background-size: cover;
+            background-repeat: repeat;
+        }
+        .overlay {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        td {
+            vertical-align: middle;
+        }
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input[type=text], input[type=number], textarea {
+            width: calc(100% - 24px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        .logo-go {
+            width: 50px;
+            height: 50px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <h1><img class="logo-go" src="https://blog.golang.org/go-brand/Go-Logo/SVG/Go-Logo_Blue.svg" alt="Logo Go">CRUD de Produtos</h1>
+        
+        <!-- Formulário para criação de novo produto -->
+        <h2>Novo Produto</h2>
+        <form id="formNovoProduto">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" required><br><br>
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" name="descricao" required></textarea><br><br>
+            <label for="preco">Preço:</label>
+            <input type="number" id="preco" name="preco" step="0.01" required><br><br>
+            <button type="submit">Criar Produto</button>
+        </form>
+        
+        <!-- Tabela para exibir produtos -->
+        <h2>Produtos</h2>
+        <table id="tabelaProdutos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Descrição</th>
+                    <th>Preço</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabelaProdutos">
+                <!-- Aqui serão inseridas as linhas da tabela via JavaScript -->
+            </tbody>
+        </table>
+
+        <!-- Botão para carregar novos produtos -->
+        <button onclick="carregarNovosProdutos()">Carregar Novos Produtos</button>
+    </div>
+    
+    <script>
+        // Função para carregar novos produtos
+        function carregarNovosProdutos() {
+            // Limpar a tabela atual
+            const tabela = document.getElementById('corpoTabelaProdutos');
+            tabela.innerHTML = '';
+            
+            // Buscar novamente todos os produtos
+            buscarTodos();
+        }
+        
+        // Função para buscar todos os produtos ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            buscarTodos();
+        });
+        
+        // Função para buscar todos os produtos
+        function buscarTodos() {
+            fetch('/api/produtos')
+                .then(response => response.json())
+                .then(produtos => {
+                    exibirProdutos(produtos);
+                })
+                .catch(error => console.error('Erro ao buscar produtos:', error));
+        }
+        
+        // Função para exibir produtos na tabela
+        function exibirProdutos(produtos) {
+            const tabela = document.getElementById('corpoTabelaProdutos');
+            produtos.forEach(produto => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${produto.id}</td>
+                    <td>${produto.nome}</td>
+                    <td>${produto.descricao}</td>
+                    <td>${produto.preco}</td>
+                    <td>
+                        <button onclick="alterarProduto(${produto.id})">Alterar</button>
+                        <button onclick="removerProduto(${produto.id})">Remover</button>
+                    </td>
+                `;
+                tabela.appendChild(tr);
+            });
+        }
+        
+        // Função para enviar novo produto ao backend
+        document.getElementById('formNovoProduto').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const novoProduto = {
+                nome: formData.get('nome'),
+                descricao: formData.get('descricao'),
+                preco: parseFloat(formData.get('preco'))
+            };
+            
+            fetch('/api/produtos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(novoProduto),
+            })
+            .then(response => response.json())
+            .then(produto => {
+                alert(`Produto criado com ID: ${produto.id}`);
+                // Atualizar a tabela após criar o produto
+                buscarTodos();
+                // Limpar formulário
+                event.target.reset();
+            })
+            .catch(error => console.error('Erro ao criar produto:', error));
+        });
+        
+        // Função para alterar um produto
+        function alterarProduto(idProduto) {
+            // Implemente a lógica de alteração conforme seu backend em Go
+            alert(`Implemente a lógica para alterar o produto com ID ${idProduto}`);
+        }
+        
+        // Função para remover um produto
+        function removerProduto(idProduto) {
+            // Implemente a lógica de remoção conforme seu backend em Go
+            alert(`Implemente a lógica para remover o produto com ID ${idProduto}`);
+        }
+    </script>
+</body>
+</html>
+
+{{end}}
